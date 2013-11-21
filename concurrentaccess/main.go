@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"sync"
 	"time"
 )
 
@@ -28,28 +29,29 @@ type Foo struct {
 
 type FooSlice []*Foo
 
-func updateFooSlice(fooSlice FooSlice) {
+var mutex sync.Mutex
 
+func updateFooSlice(fooSlice FooSlice) {
 	for {
+		mutex.Lock()
 		foo := &Foo{content: "new"}
 		fooSlice[0] = foo
 		fooSlice[1] = nil
+		mutex.Unlock()
 		time.Sleep(time.Second)
 	}
-
 }
 
 func installHttpHandler(fooSlice FooSlice) {
-
 	handler := func(w http.ResponseWriter, r *http.Request) {
+		mutex.Lock()
+		defer mutex.Unlock()
 		for _, foo := range fooSlice {
 			if foo != nil {
 				fmt.Fprintf(w, "foo: %v ", (*foo).content)
 			}
 		}
-
 	}
-
 	http.HandleFunc("/", handler)
 }
 
