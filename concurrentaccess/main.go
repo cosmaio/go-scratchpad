@@ -28,21 +28,21 @@ type Foo struct {
 
 type FooSlice []*Foo
 
-func updateFooSlice(fooSlice *FooSlice) {
+func updateFooSlice(fooSlice FooSlice) {
 
 	for {
 		foo := &Foo{content: "new"}
-		(*fooSlice)[0] = foo
-		(*fooSlice)[1] = nil
+		fooSlice[0] = foo
+		fooSlice[1] = nil
 		time.Sleep(time.Second)
 	}
 
 }
 
-func installHttpHandler(fooSlice *FooSlice) {
+func installHttpHandler(fooSlice FooSlice) {
 
 	handler := func(w http.ResponseWriter, r *http.Request) {
-		for _, foo := range *fooSlice {
+		for _, foo := range fooSlice {
 			if foo != nil {
 				fmt.Fprintf(w, "foo: %v ", (*foo).content)
 			}
@@ -58,7 +58,7 @@ func main() {
 	foo1 := &Foo{content: "hey"}
 	foo2 := &Foo{content: "yo"}
 
-	fooSlice := &FooSlice{foo1, foo2}
+	fooSlice := FooSlice{foo1, foo2}
 
 	installHttpHandler(fooSlice)
 
