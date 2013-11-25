@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"net/http"
-	"sync"
 	"time"
 )
 
@@ -29,24 +28,34 @@ type Foo struct {
 
 type FooSlice []*Foo
 
-var mutex sync.Mutex
+var request chan chan FooSlice
 
 func updateFooSlice(fooSlice FooSlice) {
+	t := time.Tick(time.Second)
 	for {
-		mutex.Lock()
-		foo := &Foo{content: "new"}
-		fooSlice[0] = foo
-		fooSlice[1] = nil
-		mutex.Unlock()
-		time.Sleep(time.Second)
+		select {
+		case <-t:
+			foo := &Foo{content: "new"}
+			fooSlice[0] = foo
+			fooSlice[1] = nil
+		case ch := <-request:
+			fooSliceCopy := make(FooSlice, len(fooSlice))
+			copy(fooSliceCopy, fooSlice)
+			ch <- fooSliceCopy
+		}
+
 	}
 }
 
 func installHttpHandler(fooSlice FooSlice) {
+
 	handler := func(w http.ResponseWriter, r *http.Request) {
-		mutex.Lock()
-		defer mutex.Unlock()
-		for _, foo := range fooSlice {
+
+		response := make(chan FooSlice)
+		request <- response
+		fooSliceCopy := <-response
+
+		for _, foo := range fooSliceCopy {
 			if foo != nil {
 				fmt.Fprintf(w, "foo: %v ", (*foo).content)
 			}
@@ -56,6 +65,8 @@ func installHttpHandler(fooSlice FooSlice) {
 }
 
 func main() {
+
+	request = make(chan chan FooSlice)
 
 	foo1 := &Foo{content: "hey"}
 	foo2 := &Foo{content: "yo"}
