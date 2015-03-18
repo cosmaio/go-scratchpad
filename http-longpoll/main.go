@@ -8,6 +8,11 @@ import (
 
 func main() {
 
+	http.HandleFunc("/normal", func(response http.ResponseWriter, r *http.Request) {
+		response.Header().Set("Content-Type", "application/json")
+		response.Write([]byte(`{"hello":"world"}`))
+	})
+
 	http.HandleFunc("/longpoll", func(response http.ResponseWriter, r *http.Request) {
 
 		flush := func() {
