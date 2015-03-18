@@ -24,7 +24,7 @@ func main() {
 		defer heartbeatTicker.Stop()
 		heartbeat := heartbeatTicker.C
 
-		timeoutTicker := time.NewTicker(time.Duration(60) * time.Second)
+		timeoutTicker := time.NewTicker(time.Duration(30) * time.Second)
 		defer timeoutTicker.Stop()
 		timeout := timeoutTicker.C
 
