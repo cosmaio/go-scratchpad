@@ -70,19 +70,23 @@ func client() {
 				serverUrl,
 				"bar",
 			)
-			buf := bytes.NewBuffer([]byte(`{"hello":"world"}`))
-			resp, err := http.Post(endpoint, "application/json", buf)
-			if err != nil {
-				log.Printf("Error doing request: %v", err)
-				return
+			for j := 0; j < 10; j++ {
+
+				buf := bytes.NewBuffer([]byte(`{"hello":"world"}`))
+				resp, err := http.Post(endpoint, "application/json", buf)
+				if err != nil {
+					log.Printf("Error doing request: %v", err)
+					return
+				}
+				defer resp.Body.Close()
+				responseBody, err := ioutil.ReadAll(resp.Body)
+				if err != nil {
+					log.Printf("Error reading response: %v", err)
+					return
+				}
+				log.Printf("response: %v", string(responseBody))
+
 			}
-			defer resp.Body.Close()
-			responseBody, err := ioutil.ReadAll(resp.Body)
-			if err != nil {
-				log.Printf("Error reading response: %v", err)
-				return
-			}
-			log.Printf("response: %v", string(responseBody))
 
 		}()
 	}
